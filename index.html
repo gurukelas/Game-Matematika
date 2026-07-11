@@ -1,0 +1,1347 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Petualangan Pecahan - Kelas 6 SD</title>
+    <style>
+        :root {
+            --primary: #4A90E2; /* Biru ceria */
+            --primary-dark: #357ABD;
+            --secondary: #50E3C2; /* Hijau toska */
+            --accent: #F5A623; /* Oranye/Kuning emas */
+            --danger: #E74C3C;
+            --success: #2ECC71;
+            --bg-color: #E0F7FA;
+            --text-main: #333;
+            --text-light: #fff;
+            --panel-bg: rgba(255, 255, 255, 0.95);
+            --font-main: 'Segoe UI', 'Comic Sans MS', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none; /* Mencegah seleksi teks saat tap */
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            overflow: hidden; /* Mencegah scroll */
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(80, 227, 194, 0.2) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(245, 166, 35, 0.2) 0%, transparent 20%),
+                radial-gradient(circle at 50% 50%, rgba(74, 144, 226, 0.1) 0%, transparent 50%);
+            background-size: cover;
+        }
+
+        #game-container {
+            position: relative;
+            width: 100%;
+            max-width: 1024px; /* Optimal untuk landscape/tablet */
+            height: 100%;
+            max-height: 768px;
+            background: url('https://drive.google.com/uc?export=view&id=1bfJHijXRdhOa1J257Yp6G2pf7boYv7P1') no-repeat center center;
+            background-size: cover;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+            border-radius: 20px;
+        }
+
+        @media (max-width: 1024px) {
+            #game-container {
+                border-radius: 0;
+                max-height: 100vh;
+            }
+        }
+
+        /* Screen Management */
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .game-logo {
+            max-width: 90%;
+            max-height: 250px;
+            object-fit: contain;
+            margin-bottom: 5px;
+            animation: bounceIn 1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            filter: drop-shadow(0px 10px 15px rgba(0,0,0,0.2));
+        }
+
+        /* Typography */
+        h1 {
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            color: var(--primary);
+            text-shadow: 3px 3px 0 #fff, -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;
+            text-align: center;
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+            animation: bounceIn 1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        h2 { font-size: clamp(1.5rem, 3vw, 2.5rem); margin-bottom: 20px; color: var(--primary-dark); }
+        h3 { font-size: clamp(1.2rem, 2vw, 1.8rem); margin-bottom: 15px; }
+        p { font-size: clamp(1rem, 1.5vw, 1.2rem); text-align: center; margin-bottom: 15px; line-height: 1.5; }
+
+        /* Buttons */
+        .btn {
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: clamp(1.2rem, 2vw, 1.5rem);
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #D08C1D, 0 10px 10px rgba(0,0,0,0.2);
+            transition: all 0.1s;
+            margin: 10px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-family: inherit;
+        }
+
+        .btn:active {
+            transform: translateY(6px);
+            box-shadow: 0 0px 0 #D08C1D, 0 4px 4px rgba(0,0,0,0.2);
+        }
+
+        .btn-primary { background-color: var(--primary); box-shadow: 0 6px 0 var(--primary-dark), 0 10px 10px rgba(0,0,0,0.2); }
+        .btn-primary:active { box-shadow: 0 0px 0 var(--primary-dark), 0 4px 4px rgba(0,0,0,0.2); }
+        
+        .btn-success { background-color: var(--success); box-shadow: 0 6px 0 #27AE60, 0 10px 10px rgba(0,0,0,0.2); }
+        .btn-success:active { box-shadow: 0 0px 0 #27AE60, 0 4px 4px rgba(0,0,0,0.2); }
+
+        .btn-danger { background-color: var(--danger); box-shadow: 0 6px 0 #C0392B, 0 10px 10px rgba(0,0,0,0.2); }
+        .btn-danger:active { box-shadow: 0 0px 0 #C0392B, 0 4px 4px rgba(0,0,0,0.2); }
+
+        /* Floating Controls */
+        .controls {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 100;
+        }
+        .icon-btn {
+            background: var(--panel-bg);
+            border: 2px solid var(--primary);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: transform 0.2s;
+        }
+        .icon-btn:active { transform: scale(0.9); }
+
+        /* Panels */
+        .panel {
+            background: var(--panel-bg);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            max-width: 800px;
+            width: 90%;
+            text-align: center;
+            border: 4px solid white;
+        }
+
+        /* Fraction Rendering */
+        .fraction {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            vertical-align: middle;
+            margin: 0 8px;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+        .fraction > span:first-child {
+            border-bottom: 3px solid var(--text-main);
+            padding: 0 4px;
+        }
+        .fraction > span:last-child {
+            padding: 0 4px;
+        }
+        .mixed-fraction {
+            display: inline-flex;
+            align-items: center;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+        .mixed-whole { margin-right: 4px; font-size: 1.4em; }
+
+        /* HUD (Heads Up Display) */
+        #hud {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 15px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            pointer-events: none;
+            z-index: 50;
+        }
+        .hud-item {
+            background: rgba(255,255,255,0.9);
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-weight: bold;
+            font-size: 1.2rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border: 2px solid var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .hearts { color: var(--danger); font-size: 1.5rem; }
+        .score-display { color: var(--accent); }
+
+        /* Timer Bar */
+        #timer-container {
+            width: 100%;
+            height: 15px;
+            background: #ddd;
+            border-radius: 10px;
+            margin-top: 10px;
+            overflow: hidden;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        }
+        #timer-bar {
+            height: 100%;
+            width: 100%;
+            background: var(--success);
+            transition: width 1s linear, background-color 0.5s;
+        }
+
+        /* Map Screen */
+        .map-container {
+            position: relative;
+            width: 100%;
+            height: 60vh;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M0,50 Q25,20 50,50 T100,50 L100,100 L0,100 Z" fill="%23A0E8AF" opacity="0.5"/></svg>') no-repeat bottom center;
+            background-size: cover;
+            border-radius: 20px;
+            border: 4px solid white;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        .level-node {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background: #ccc;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+            border: 4px solid white;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.3);
+            cursor: pointer;
+            transition: transform 0.2s;
+            z-index: 2;
+        }
+        .level-node.unlocked { background: var(--accent); cursor: pointer; animation: pulse 2s infinite; }
+        .level-node.completed { background: var(--success); cursor: default; animation: none; }
+        .level-node.boss { background: var(--danger); width: 80px; height: 80px; font-size: 2rem; }
+        .level-node.locked { cursor: not-allowed; filter: grayscale(100%); }
+        .level-node:hover.unlocked { transform: scale(1.1); }
+        
+        /* Path dashed line connecting nodes */
+        .map-path {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 1; pointer-events: none;
+        }
+
+        /* Gameplay Area */
+        .question-box {
+            font-size: clamp(2rem, 4vw, 3rem);
+            margin: 20px 0;
+            padding: 30px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border: 3px dashed var(--primary);
+            min-height: 150px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .word-problem {
+            font-size: clamp(1.2rem, 2.5vw, 1.8rem);
+            line-height: 1.6;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .option-btn {
+            background: white;
+            border: 3px solid var(--primary);
+            border-radius: 15px;
+            padding: 20px 10px;
+            font-size: clamp(1.5rem, 3vw, 2rem);
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .option-btn:hover { background: var(--bg-color); transform: translateY(-2px); }
+        .option-btn:active { transform: translateY(2px); box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+        .option-btn.correct { background: var(--success); color: white; border-color: #27AE60; }
+        .option-btn.wrong { background: var(--danger); color: white; border-color: #C0392B; }
+
+        /* Character Selection */
+        .char-select-grid { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; margin-top: 20px; }
+        .char-card {
+            background: white; border: 4px solid transparent; border-radius: 20px; padding: 20px;
+            cursor: pointer; transition: all 0.3s; width: 150px; text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .char-card svg { width: 100px; height: 100px; margin-bottom: 10px; }
+        .char-card.selected { border-color: var(--accent); transform: scale(1.1); box-shadow: 0 10px 25px rgba(245,166,35,0.4); }
+
+        /* Boss Area */
+        .boss-area {
+            display: flex; flex-direction: column; align-items: center; margin-bottom: 20px;
+        }
+        #boss-svg { width: 150px; height: 150px; transition: transform 0.2s; }
+        .boss-hit { animation: shake 0.5s; filter: hue-rotate(90deg); }
+        .boss-health-bar { width: 80%; height: 20px; background: #333; border-radius: 10px; margin-top: 10px; border: 2px solid white; overflow: hidden;}
+        #boss-health-fill { height: 100%; width: 100%; background: var(--danger); transition: width 0.3s; }
+        .streak-counter { font-size: 1.2rem; font-weight: bold; color: var(--accent); margin-top: 5px; }
+
+        /* Animations */
+        @keyframes bounceIn {
+            0% { transform: scale(0.1); opacity: 0; }
+            60% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(1); }
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(245, 166, 35, 0.7); }
+            70% { transform: scale(1.05); box-shadow: 0 0 0 15px rgba(245, 166, 35, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(245, 166, 35, 0); }
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px) rotate(-5deg); }
+            75% { transform: translateX(10px) rotate(5deg); }
+        }
+        @keyframes pop {
+            0% { transform: scale(0.8); opacity: 0; }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* Feedback Overlay */
+        #feedback-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 200; display: flex; justify-content: center; align-items: center;
+            opacity: 0; transition: opacity 0.2s;
+        }
+        #feedback-msg { font-size: 4rem; font-weight: bold; text-shadow: 2px 2px 10px rgba(0,0,0,0.5); transform: scale(0.5); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        
+        .show-feedback { opacity: 1 !important; }
+        .show-feedback #feedback-msg { transform: scale(1); }
+        .feedback-correct { color: var(--success); }
+        .feedback-wrong { color: var(--danger); }
+
+        /* Confetti Canvas */
+        #confetti-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 150; }
+
+        /* Leaderboard & Certificate */
+        .table-container { max-height: 300px; overflow-y: auto; width: 100%; margin-top: 20px; border-radius: 10px; border: 1px solid #ddd; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; text-align: center; border-bottom: 1px solid #eee; }
+        th { background-color: var(--primary); color: white; position: sticky; top: 0; }
+        
+        #certificate-panel { background: #fffdf0; border: 15px solid #d4af37; outline: 5px solid #800000; outline-offset: -10px; padding: 40px; color: #333; }
+        #cert-title { color: #d4af37; font-family: 'Times New Roman', serif; font-size: 2.5rem; text-shadow: none; margin-bottom: 20px;}
+        #cert-name { font-size: 2.5rem; font-family: 'Brush Script MT', cursive; color: #800000; margin: 20px 0; border-bottom: 2px dashed #ccc; display: inline-block; padding: 0 20px; }
+
+        /* Print Media Query */
+        @media print {
+            body * { visibility: hidden; }
+            #screen-certificate, #screen-certificate * { visibility: visible; }
+            #screen-certificate { position: absolute; left: 0; top: 0; width: 100%; height: 100%; display: flex !important; justify-content: center; align-items: center; background: white; }
+            .controls, .btn { display: none !important; }
+            #certificate-panel { box-shadow: none; width: 100%; max-width: none; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    
+    <!-- Audio & Fullscreen Controls -->
+    <div class="controls" id="global-controls">
+        <button class="icon-btn" id="btn-sound" onclick="toggleSound()" title="Musik ON/OFF">🎵</button>
+        <button class="icon-btn" id="btn-fullscreen" onclick="toggleFullScreen()" title="Layar Penuh">⛶</button>
+    </div>
+
+    <!-- HUD (Heads Up Display) -->
+    <div id="hud" style="display: none;">
+        <div class="hud-item" id="hud-lives">
+            <span class="hearts">❤️❤️❤️</span>
+        </div>
+        <div class="hud-item" id="hud-level">
+            🗺️ Level <span id="hud-level-val">1</span>
+        </div>
+        <div class="hud-item score-display">
+            ⭐ <span id="hud-score">0</span>
+        </div>
+    </div>
+
+    <canvas id="confetti-canvas"></canvas>
+
+    <!-- Screen: Loading -->
+    <div id="screen-loading" class="screen active" style="background: var(--primary);">
+        <h1 style="color: white; text-shadow: none;">Memuat Game...</h1>
+        <div style="width: 200px; height: 20px; background: rgba(255,255,255,0.3); border-radius: 10px; margin-top: 20px; overflow: hidden;">
+            <div id="loading-bar" style="width: 0%; height: 100%; background: var(--accent); transition: width 0.1s;"></div>
+        </div>
+    </div>
+
+    <!-- Screen: Home -->
+    <div id="screen-home" class="screen">
+        <img src="https://drive.google.com/uc?export=view&id=1yyCWmDSofi02ViANy_e1eI_UQRWybXo4" alt="Logo Petualangan Pecahan" class="game-logo" onerror="this.style.display='none'">
+        <h1>PETUALANGAN<br>PECAHAN</h1>
+        <h3 style="color: var(--primary-dark); text-align: center; background: rgba(255,255,255,0.7); padding: 10px; border-radius: 10px;">Belajar Perkalian dan Pembagian Pecahan Sambil Bermain</h3>
+        
+        <div style="display: flex; flex-direction: column; gap: 15px; margin-top: 30px;">
+            <button class="btn btn-primary" style="font-size: 1.8rem; padding: 20px 50px;" onclick="switchScreen('screen-character')">▶ MULAI GAME</button>
+            <button class="btn" onclick="switchScreen('screen-howto')">📖 Cara Bermain</button>
+            <button class="btn btn-success" onclick="showLeaderboard()">🏆 Papan Skor</button>
+        </div>
+    </div>
+
+    <!-- Screen: How to Play -->
+    <div id="screen-howto" class="screen">
+        <div class="panel">
+            <h2>Cara Bermain</h2>
+            <div style="text-align: left; margin: 20px 0; font-size: 1.1rem; line-height: 1.6;">
+                <p>🏴‍☠️ Jelajahi 5 pulau untuk mencari harta karun pecahan!</p>
+                <p>⏱️ Setiap soal memiliki waktu <b>20 detik</b>.</p>
+                <p>❤️ Kamu memiliki <b>3 nyawa</b>. Jangan sampai salah jawab!</p>
+                <p>⭐ Kumpulkan poin dari jawaban benar dan bonus kecepatan.</p>
+                <p>🔥 Jawab 5 kali benar berturut-turut untuk <b>Combo Bonus</b>.</p>
+                <p>👹 Kalahkan <b>Monster Pecahan</b> di akhir petualangan!</p>
+            </div>
+            <button class="btn btn-primary" onclick="switchScreen('screen-home')">Kembali</button>
+        </div>
+    </div>
+
+    <!-- Screen: Character Select -->
+    <div id="screen-character" class="screen">
+        <div class="panel">
+            <h2>Pilih Karaktermu</h2>
+            <input type="text" id="player-name" placeholder="Masukkan Nama Kamu..." style="padding: 10px; font-size: 1.2rem; width: 80%; border-radius: 10px; border: 2px solid var(--primary); text-align: center; margin-bottom: 20px;" maxlength="15">
+            
+            <div class="char-select-grid">
+                <div class="char-card selected" onclick="selectCharacter('boy', this)">
+                    <!-- Boy SVG -->
+                    <svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="#FFDDC1"/><path d="M 20 40 Q 50 10 80 40" fill="#4A2511"/><circle cx="35" cy="55" r="5" fill="#333"/><circle cx="65" cy="55" r="5" fill="#333"/><path d="M 40 70 Q 50 80 60 70" stroke="#333" stroke-width="3" fill="transparent"/></svg>
+                    <h4>Budi</h4>
+                </div>
+                <div class="char-card" onclick="selectCharacter('girl', this)">
+                    <!-- Girl SVG -->
+                    <svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="#FFDDC1"/><path d="M 10 50 Q 50 -10 90 50 L 90 90 L 10 90 Z" fill="#2C3E50"/><circle cx="50" cy="50" r="45" fill="#FFDDC1"/><circle cx="35" cy="55" r="5" fill="#333"/><circle cx="65" cy="55" r="5" fill="#333"/><path d="M 40 75 Q 50 85 60 75" stroke="#333" stroke-width="3" fill="transparent"/></svg>
+                    <h4>Ani</h4>
+                </div>
+                <div class="char-card" onclick="selectCharacter('robot', this)">
+                    <!-- Robot SVG -->
+                    <svg viewBox="0 0 100 100"><rect x="20" y="30" width="60" height="60" rx="10" fill="#95A5A6"/><rect x="45" y="10" width="10" height="20" fill="#7F8C8D"/><circle cx="50" cy="10" r="8" fill="#E74C3C"/><circle cx="35" cy="55" r="8" fill="#F1C40F"/><circle cx="65" cy="55" r="8" fill="#F1C40F"/><rect x="35" y="75" width="30" height="5" fill="#333"/></svg>
+                    <h4>Robo</h4>
+                </div>
+            </div>
+            <button class="btn btn-success" style="margin-top: 20px; font-size: 1.5rem;" onclick="initGame()">Mulai Petualangan!</button>
+        </div>
+    </div>
+
+    <!-- Screen: Map -->
+    <div id="screen-map" class="screen">
+        <div class="panel" style="width: 100%; height: 90%; display: flex; flex-direction: column;">
+            <h2>Peta Pecahan</h2>
+            <div class="map-container" id="level-map">
+                <svg class="map-path" id="map-svg-path">
+                    <!-- Path drawn dynamically -->
+                </svg>
+                <!-- Nodes drawn dynamically via JS -->
+            </div>
+            <p id="map-instructions" style="font-weight: bold; color: var(--primary-dark);">Pilih level yang terbuka!</p>
+            <button class="btn btn-danger" onclick="confirmExit()">Kembali ke Menu</button>
+        </div>
+    </div>
+
+    <!-- Screen: Game -->
+    <div id="screen-game" class="screen">
+        <div class="panel" style="width: 100%; max-width: 900px; position: relative;">
+            <button class="icon-btn" style="position: absolute; top: -15px; left: -15px; z-index: 10;" onclick="pauseGame()">⏸</button>
+            
+            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                <span id="level-title-display" style="font-weight: bold; color: var(--primary);">Level 1: Perkalian Dasar</span>
+                <span style="font-weight: bold; color: var(--accent);">Soal <span id="q-current">1</span>/<span id="q-total">5</span></span>
+            </div>
+
+            <div id="timer-container">
+                <div id="timer-bar"></div>
+            </div>
+
+            <!-- Boss Element (Hidden by default) -->
+            <div id="boss-container" class="boss-area" style="display: none;">
+                <svg id="boss-svg" viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" r="45" fill="#8E44AD"/>
+                    <path d="M 20 30 L 40 45 L 60 45 L 80 30" stroke="#333" stroke-width="4" fill="transparent"/>
+                    <circle cx="35" cy="55" r="6" fill="#FFF"/><circle cx="35" cy="55" r="2" fill="#F00"/>
+                    <circle cx="65" cy="55" r="6" fill="#FFF"/><circle cx="65" cy="55" r="2" fill="#F00"/>
+                    <path d="M 30 75 Q 50 65 70 75" stroke="#FFF" stroke-width="4" fill="transparent"/>
+                </svg>
+                <div class="boss-health-bar"><div id="boss-health-fill"></div></div>
+                <div class="streak-counter">Combo Boss: <span id="boss-streak">0</span>/10</div>
+            </div>
+
+            <div class="question-box" id="question-text">
+                <!-- Question injected here -->
+            </div>
+
+            <div class="options-grid" id="options-container">
+                <!-- Options injected here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Feedback Overlay -->
+    <div id="feedback-overlay">
+        <div id="feedback-msg">BENAR!</div>
+    </div>
+
+    <!-- Screen: Level Complete -->
+    <div id="screen-level-complete" class="screen">
+        <div class="panel">
+            <h2 id="lvl-comp-title">Level Selesai!</h2>
+            <div style="font-size: 5rem; margin: 10px 0; animation: pop 0.5s;">⭐</div>
+            <p id="lvl-comp-msg">Luar biasa! Kamu semakin mahir.</p>
+            <div style="margin: 20px 0; background: var(--bg-color); padding: 15px; border-radius: 10px;">
+                <p>Skor Level Ini: <b id="lvl-score" style="color: var(--accent);">+50</b></p>
+                <p id="new-badge-msg" style="color: var(--success); font-weight: bold; display: none;">🎖️ Badge Baru Didapatkan!</p>
+            </div>
+            <button class="btn btn-primary" onclick="backToMap()">Lanjut ke Peta</button>
+        </div>
+    </div>
+
+    <!-- Screen: Game Over -->
+    <div id="screen-gameover" class="screen" style="background: rgba(231, 76, 60, 0.9);">
+        <div class="panel">
+            <h1 style="color: var(--danger); text-shadow: none;">GAME OVER</h1>
+            <svg style="width: 100px; height: 100px; margin: 20px auto; display: block;" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="45" fill="#F1C40F"/>
+                <circle cx="35" cy="40" r="5" fill="#333"/><circle cx="65" cy="40" r="5" fill="#333"/>
+                <path d="M 30 70 Q 50 50 70 70" stroke="#333" stroke-width="4" fill="transparent"/>
+                <path d="M 25 25 L 45 35 M 75 25 L 55 35" stroke="#333" stroke-width="4"/>
+            </svg>
+            <p style="font-size: 1.5rem;">"Jangan menyerah, kamu pasti bisa!"</p>
+            <p>Skor Akhir: <b id="final-score-go" style="color: var(--accent); font-size: 1.5rem;">0</b></p>
+            <div style="display: flex; justify-content: center; gap: 10px; margin-top: 20px;">
+                <button class="btn btn-primary" onclick="initGame()">Coba Lagi</button>
+                <button class="btn" onclick="switchScreen('screen-home')">Menu Utama</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Screen: Victory -->
+    <div id="screen-victory" class="screen" style="background: rgba(46, 204, 113, 0.9);">
+        <div class="panel">
+            <h1 style="color: var(--success); text-shadow: none;">SELAMAT!</h1>
+            <p style="font-size: 1.2rem;">Kamu telah mengalahkan Monster Pecahan dan menemukan harta karun!</p>
+            <div style="font-size: 4rem; margin: 10px 0;">🏆💎✨</div>
+            
+            <div style="text-align: left; background: var(--bg-color); padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+                <p>Nama: <b id="vic-name"></b></p>
+                <p>Skor Total: <b id="vic-score" style="color: var(--accent);"></b></p>
+                <p>Akurasi: <b id="vic-acc"></b></p>
+            </div>
+
+            <button class="btn btn-primary" id="btn-cert" style="display: none;" onclick="showCertificate()">Lihat Sertifikat</button>
+            <button class="btn" onclick="saveScoreAndHome()">Simpan & Selesai</button>
+        </div>
+    </div>
+
+    <!-- Screen: Leaderboard -->
+    <div id="screen-leaderboard" class="screen">
+        <div class="panel">
+            <h2>Papan Skor</h2>
+            <div class="table-container">
+                <table id="lb-table">
+                    <thead><tr><th>Peringkat</th><th>Nama</th><th>Skor</th><th>Level</th></tr></thead>
+                    <tbody id="lb-body">
+                        <!-- Data diisi JS -->
+                    </tbody>
+                </table>
+            </div>
+            <button class="btn btn-primary" style="margin-top: 20px;" onclick="switchScreen('screen-home')">Kembali</button>
+        </div>
+    </div>
+
+    <!-- Screen: Certificate -->
+    <div id="screen-certificate" class="screen">
+        <div class="panel" id="certificate-panel">
+            <h1 id="cert-title">Sertifikat Juara Pecahan</h1>
+            <p>Diberikan dengan bangga kepada:</p>
+            <h2 id="cert-name">Nama Pemain</h2>
+            <p>Atas prestasinya menyelesaikan Petualangan Pecahan dengan sangat memuaskan.</p>
+            
+            <div style="display: flex; justify-content: space-around; margin-top: 40px; font-weight: bold;">
+                <div>
+                    <p>Skor Akhir</p>
+                    <p style="font-size: 1.5rem; color: #800000;" id="cert-score">0</p>
+                </div>
+                <div>
+                    <p>Tanggal</p>
+                    <p style="font-size: 1.2rem;" id="cert-date">11/07/2026</p>
+                </div>
+            </div>
+            
+            <div style="margin-top: 40px;" class="no-print">
+                <button class="btn btn-success" onclick="window.print()">🖨️ Cetak (PDF)</button>
+                <button class="btn" onclick="switchScreen('screen-victory')">Tutup</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pause Modal (Overlay on Game) -->
+    <div id="modal-pause" class="screen" style="background: rgba(0,0,0,0.8); z-index: 300;">
+        <div class="panel">
+            <h2>Game Dijeda</h2>
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                <button class="btn btn-success" onclick="resumeGame()">▶ Lanjutkan</button>
+                <button class="btn btn-danger" onclick="confirmExit()">Keluar Game</button>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    /* --- GAME CONFIG & STATE --- */
+    const CONFIG = {
+        totalLevels: 5,
+        questionsPerLevel: 5,
+        bossQuestions: 10,
+        timePerQuestion: 20, // seconds
+        points: { correct: 10, speed: 5, combo: 20 }
+    };
+
+    let gameState = {
+        playerName: "", character: "boy",
+        currentLevel: 1, highestLevelUnlocked: 1,
+        score: 0, lives: 3, combo: 0,
+        correctAnswersTotal: 0, totalAnswered: 0,
+        currentQuestionIndex: 0, questions: [],
+        timer: 0, timerInterval: null,
+        isMuted: false, isPaused: false,
+        isBossLevel: false, bossStreak: 0
+    };
+
+    /* --- AUDIO SYNTHESIS (Offline & Lightweight) --- */
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    
+    function playTone(freq, type, duration, vol=0.1) {
+        if (gameState.isMuted) return;
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+    }
+
+    const sfx = {
+        click: () => playTone(600, 'sine', 0.1),
+        correct: () => { playTone(523.25, 'sine', 0.1); setTimeout(() => playTone(659.25, 'sine', 0.2), 100); },
+        wrong: () => { playTone(300, 'sawtooth', 0.2); setTimeout(() => playTone(250, 'sawtooth', 0.3), 150); },
+        tick: () => playTone(800, 'square', 0.05, 0.05),
+        levelUp: () => { [523, 659, 783, 1046].forEach((f, i) => setTimeout(() => playTone(f, 'square', 0.2), i*100)); },
+        gameOver: () => { [300, 280, 250, 200].forEach((f, i) => setTimeout(() => playTone(f, 'sawtooth', 0.3), i*200)); },
+        bossHit: () => playTone(150, 'square', 0.2, 0.2)
+    };
+
+    function toggleSound() {
+        gameState.isMuted = !gameState.isMuted;
+        document.getElementById('btn-sound').textContent = gameState.isMuted ? "🔇" : "🎵";
+        if(!gameState.isMuted && audioCtx.state === 'suspended') audioCtx.resume();
+    }
+
+    function toggleFullScreen() {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().catch(e => console.log(e));
+        } else {
+            if (document.exitFullscreen) document.exitFullscreen();
+        }
+    }
+
+    /* --- UTILITIES --- */
+    const $ = id => document.getElementById(id);
+    
+    function switchScreen(screenId) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        $(screenId).classList.add('active');
+        sfx.click();
+    }
+
+    // Math Utils
+    const gcd = (a, b) => b === 0 ? Math.abs(a) : gcd(b, a % b);
+    const simplify = (n, d) => {
+        if (n === 0) return [0, 1];
+        let g = gcd(n, d);
+        if (d < 0) { n = -n; d = -d; } // keep denominator positive
+        return [n/g, d/g];
+    };
+    const randInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+    const shuffleArray = (array) => {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+    };
+
+    /* --- HTML GENERATORS FOR FRACTIONS --- */
+    function renderFrac(n, d) {
+        return `<span class="fraction"><span>${n}</span><span>${d}</span></span>`;
+    }
+    function renderMixed(w, n, d) {
+        if (w === 0) return renderFrac(n, d);
+        if (n === 0) return w.toString();
+        return `<span class="mixed-fraction"><span class="mixed-whole">${w}</span>${renderFrac(n, d)}</span>`;
+    }
+    // Convert to proper display (e.g. 5/2 -> 2 1/2)
+    function formatAnswer(n, d) {
+        let [sn, sd] = simplify(n, d);
+        if (sd === 1) return sn.toString();
+        if (sn > sd) {
+            let w = Math.floor(sn / sd);
+            let rem = sn % sd;
+            return renderMixed(w, rem, sd);
+        }
+        return renderFrac(sn, sd);
+    }
+
+    /* --- QUESTION GENERATOR --- */
+    function generateQuestions(level, count) {
+        let qs = [];
+        for (let i = 0; i < count; i++) {
+            let q = {};
+            let type = level;
+            
+            // Level 1: Simple Mult (a/b * c/d)
+            if (type === 1) {
+                let n1 = randInt(1, 5), d1 = randInt(2, 6); while(n1>=d1) d1++;
+                let n2 = randInt(1, 5), d2 = randInt(2, 6); while(n2>=d2) d2++;
+                q.text = `Hasil dari ${renderFrac(n1, d1)} × ${renderFrac(n2, d2)} adalah...`;
+                q.ansN = n1 * n2; q.ansD = d1 * d2;
+            }
+            // Level 2: Mixed Mult (A b/c * D e/f) - Keep it simple for kids
+            else if (type === 2) {
+                let w1 = randInt(1, 3), n1 = randInt(1, 3), d1 = randInt(2, 4); while(n1>=d1) d1++;
+                let n2 = randInt(1, 4), d2 = randInt(2, 5); while(n2>=d2) d2++;
+                q.text = `Hasil dari ${renderMixed(w1, n1, d1)} × ${renderFrac(n2, d2)} adalah...`;
+                let impN1 = (w1 * d1) + n1;
+                q.ansN = impN1 * n2; q.ansD = d1 * d2;
+            }
+            // Level 3: Simple Div (a/b ÷ c/d)
+            else if (type === 3) {
+                let n1 = randInt(1, 4), d1 = randInt(2, 5); while(n1>=d1) d1++;
+                let n2 = randInt(1, 4), d2 = randInt(2, 5); while(n2>=d2) d2++;
+                q.text = `Hasil dari ${renderFrac(n1, d1)} ÷ ${renderFrac(n2, d2)} adalah...`;
+                q.ansN = n1 * d2; q.ansD = d1 * n2;
+            }
+            // Level 4: Mixed Div
+            else if (type === 4) {
+                let w1 = randInt(1, 2), n1 = randInt(1, 2), d1 = randInt(2, 3); while(n1>=d1) d1++;
+                let w2 = randInt(1, 2), n2 = randInt(1, 2), d2 = randInt(2, 3); while(n2>=d2) d2++;
+                q.text = `Hasil dari ${renderMixed(w1, n1, d1)} ÷ ${renderMixed(w2, n2, d2)} adalah...`;
+                let impN1 = (w1 * d1) + n1;
+                let impN2 = (w2 * d2) + n2;
+                q.ansN = impN1 * d2; q.ansD = d1 * impN2;
+            }
+            // Level 5: Word Problems
+            else if (type === 5) {
+                const templates = [
+                    {
+                        // Division: Total / per item
+                        gen: () => {
+                            let totalN = randInt(3, 8), totalD = randInt(2, 4);
+                            let reqN = randInt(1, 2), reqD = randInt(2, 8);
+                            // ensure nice result mostly
+                            q.ansN = totalN * reqD; q.ansD = totalD * reqN;
+                            q.text = `<div class="word-problem">Ibu memiliki ${formatAnswer(totalN, totalD)} kg tepung. Setiap loyang kue membutuhkan ${formatAnswer(reqN, reqD)} kg. Berapa loyang kue yang dapat dibuat?</div>`;
+                        }
+                    },
+                    {
+                        // Multiplication: Group * per item
+                        gen: () => {
+                            let w1 = randInt(2, 5); // 2-5 kotak
+                            let n1 = randInt(1, 3), d1 = randInt(2, 4); while(n1>=d1) d1++;
+                            q.ansN = w1 * n1; q.ansD = d1;
+                            q.text = `<div class="word-problem">Paman membeli ${w1} keranjang buah. Setiap keranjang beratnya ${formatAnswer(n1, d1)} kg. Berapa kg total berat buah Paman?</div>`;
+                        }
+                    }
+                ];
+                templates[randInt(0, 1)].gen();
+            }
+
+            // Generate Distractors (Wrong options)
+            let correctStr = formatAnswer(q.ansN, q.ansD);
+            let options = [correctStr];
+            let attempts = 0;
+            while (options.length < 4 && attempts < 20) {
+                attempts++;
+                let wrongStr = "";
+                // Smartish distractors
+                let r = Math.random();
+                if(r < 0.3) wrongStr = formatAnswer(q.ansD, q.ansN); // inverted
+                else if (r < 0.6) wrongStr = formatAnswer(q.ansN + randInt(1,3), q.ansD);
+                else wrongStr = formatAnswer(q.ansN, q.ansD + randInt(1,3));
+                
+                // prevent infinity or duplicates
+                if (wrongStr.includes("Infinity") || wrongStr.includes("NaN")) continue;
+                if (!options.includes(wrongStr)) options.push(wrongStr);
+            }
+            // fallback if smart distractors fail
+            while(options.length < 4) {
+                 let w = formatAnswer(randInt(1,10), randInt(2,10));
+                 if (!options.includes(w)) options.push(w);
+            }
+
+            shuffleArray(options);
+            q.options = options;
+            q.correctOption = options.indexOf(correctStr);
+            qs.push(q);
+        }
+        return qs;
+    }
+
+
+    /* --- INITIALIZATION --- */
+    window.onload = () => {
+        // Mock Loading
+        let loadProg = 0;
+        let loadInt = setInterval(() => {
+            loadProg += 20;
+            $('loading-bar').style.width = loadProg + '%';
+            if (loadProg >= 100) {
+                clearInterval(loadInt);
+                setTimeout(() => switchScreen('screen-home'), 500);
+            }
+        }, 100);
+    };
+
+    function selectCharacter(char, el) {
+        gameState.character = char;
+        document.querySelectorAll('.char-card').forEach(c => c.classList.remove('selected'));
+        el.classList.add('selected');
+        sfx.click();
+    }
+
+    function initGame() {
+        let nameInput = $('player-name').value.trim();
+        gameState.playerName = nameInput || "Petualang";
+        gameState.currentLevel = 1;
+        gameState.highestLevelUnlocked = 1;
+        gameState.score = 0;
+        gameState.lives = 3;
+        gameState.combo = 0;
+        gameState.correctAnswersTotal = 0;
+        gameState.totalAnswered = 0;
+        
+        $('hud').style.display = 'flex';
+        updateHUD();
+        renderMap();
+        switchScreen('screen-map');
+    }
+
+
+    /* --- MAP SYSTEM --- */
+    function renderMap() {
+        const mapContainer = $('level-map');
+        const pathSvg = $('map-svg-path');
+        // Clear previous except path
+        mapContainer.querySelectorAll('.level-node').forEach(n => n.remove());
+        pathSvg.innerHTML = '';
+
+        const positions = [
+            {x: 15, y: 80}, {x: 35, y: 50}, {x: 60, y: 70}, {x: 80, y: 40}, {x: 50, y: 15}
+        ];
+
+        let pathD = `M ${positions[0].x} ${positions[0].y} `;
+
+        for (let i = 0; i < CONFIG.totalLevels; i++) {
+            let pos = positions[i];
+            let lvlNum = i + 1;
+            let node = document.createElement('div');
+            node.className = 'level-node';
+            
+            if (lvlNum < gameState.highestLevelUnlocked) {
+                node.classList.add('completed');
+                node.innerHTML = '✔️';
+            } else if (lvlNum === gameState.highestLevelUnlocked) {
+                node.classList.add('unlocked');
+                node.innerHTML = lvlNum;
+                node.onclick = () => startLevel(lvlNum);
+            } else {
+                node.classList.add('locked');
+                node.innerHTML = '🔒';
+            }
+
+            if (lvlNum === CONFIG.totalLevels) {
+                node.classList.add('boss');
+                node.innerHTML = lvlNum === gameState.highestLevelUnlocked ? '👹' : (lvlNum < gameState.highestLevelUnlocked ? '✔️' : '🔒');
+            }
+
+            node.style.left = `calc(${pos.x}% - ${node.offsetWidth/2}px)`;
+            node.style.top = `calc(${pos.y}% - ${node.offsetHeight/2}px)`;
+            mapContainer.appendChild(node);
+
+            if (i > 0) {
+                // simple curve for path
+                let prev = positions[i-1];
+                let midX = (prev.x + pos.x)/2;
+                pathD += `Q ${midX} ${Math.min(prev.y, pos.y) - 10} ${pos.x} ${pos.y} `;
+            }
+        }
+        
+        pathSvg.innerHTML = `<path d="${pathD}" stroke="#FFF" stroke-width="5" stroke-dasharray="10,10" fill="transparent"/>`;
+    }
+
+    /* --- GAMEPLAY LOGIC --- */
+    function startLevel(level) {
+        gameState.currentLevel = level;
+        gameState.isBossLevel = (level === CONFIG.totalLevels);
+        let qCount = gameState.isBossLevel ? CONFIG.bossQuestions : CONFIG.questionsPerLevel;
+        gameState.questions = generateQuestions(level, qCount);
+        gameState.currentQuestionIndex = 0;
+        gameState.combo = 0;
+        gameState.bossStreak = 0;
+
+        // UI Setup
+        $('level-title-display').textContent = gameState.isBossLevel ? "BOSS: Monster Pecahan!" : `Level ${level}`;
+        $('q-total').textContent = qCount;
+        $('boss-container').style.display = gameState.isBossLevel ? 'flex' : 'none';
+        
+        if(gameState.isBossLevel) updateBossHealth();
+
+        switchScreen('screen-game');
+        loadQuestion();
+    }
+
+    function loadQuestion() {
+        if (gameState.currentQuestionIndex >= gameState.questions.length) {
+            endLevel();
+            return;
+        }
+
+        let q = gameState.questions[gameState.currentQuestionIndex];
+        $('q-current').textContent = gameState.currentQuestionIndex + 1;
+        $('question-text').innerHTML = q.text;
+        
+        let optsContainer = $('options-container');
+        optsContainer.innerHTML = '';
+        
+        q.options.forEach((opt, index) => {
+            let btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerHTML = opt;
+            btn.onclick = () => checkAnswer(index, btn);
+            optsContainer.appendChild(btn);
+        });
+
+        startTimer();
+    }
+
+    function startTimer() {
+        clearInterval(gameState.timerInterval);
+        gameState.timer = CONFIG.timePerQuestion;
+        let bar = $('timer-bar');
+        bar.style.transition = 'none';
+        bar.style.width = '100%';
+        bar.style.backgroundColor = 'var(--success)';
+        
+        setTimeout(() => { bar.style.transition = 'width 1s linear, background-color 0.5s'; }, 50);
+
+        gameState.timerInterval = setInterval(() => {
+            if(gameState.isPaused) return;
+            gameState.timer--;
+            let pct = (gameState.timer / CONFIG.timePerQuestion) * 100;
+            bar.style.width = pct + '%';
+            
+            if(pct < 50) bar.style.backgroundColor = 'var(--accent)';
+            if(pct < 25) { bar.style.backgroundColor = 'var(--danger)'; sfx.tick(); }
+
+            if (gameState.timer <= 0) {
+                clearInterval(gameState.timerInterval);
+                handleTimeOut();
+            }
+        }, 1000);
+    }
+
+    function pauseGame() {
+        gameState.isPaused = true;
+        $('modal-pause').classList.add('active');
+    }
+    
+    function resumeGame() {
+        gameState.isPaused = false;
+        $('modal-pause').classList.remove('active');
+    }
+
+    function confirmExit() {
+        if(confirm("Yakin ingin keluar? Progres level ini tidak akan disimpan.")) {
+            clearInterval(gameState.timerInterval);
+            $('hud').style.display = 'none';
+            $('modal-pause').classList.remove('active');
+            switchScreen('screen-home');
+        }
+    }
+
+    function checkAnswer(selectedIndex, btnElement) {
+        clearInterval(gameState.timerInterval);
+        let q = gameState.questions[gameState.currentQuestionIndex];
+        let isCorrect = (selectedIndex === q.correctOption);
+        gameState.totalAnswered++;
+
+        // Disable all buttons
+        const btns = $('options-container').querySelectorAll('button');
+        btns.forEach(b => b.style.pointerEvents = 'none');
+
+        if (isCorrect) {
+            btnElement.classList.add('correct');
+            handleCorrect();
+        } else {
+            btnElement.classList.add('wrong');
+            btns[q.correctOption].classList.add('correct'); // Show correct answer
+            handleWrong();
+        }
+
+        setTimeout(() => {
+            $('feedback-overlay').classList.remove('show-feedback');
+            if (gameState.lives > 0) {
+                gameState.currentQuestionIndex++;
+                loadQuestion();
+            }
+        }, 2000);
+    }
+
+    function handleTimeOut() {
+        let q = gameState.questions[gameState.currentQuestionIndex];
+        const btns = $('options-container').querySelectorAll('button');
+        btns.forEach(b => b.style.pointerEvents = 'none');
+        btns[q.correctOption].classList.add('correct'); // Highlight true answer
+        gameState.totalAnswered++;
+        handleWrong(true); // Treat timeout as wrong
+        
+        setTimeout(() => {
+            $('feedback-overlay').classList.remove('show-feedback');
+            if (gameState.lives > 0) {
+                gameState.currentQuestionIndex++;
+                loadQuestion();
+            }
+        }, 2500);
+    }
+
+    /* --- FEEDBACK & SCORING --- */
+    function showFeedback(text, isCorrect) {
+        let fMsg = $('feedback-msg');
+        fMsg.textContent = text;
+        fMsg.className = isCorrect ? 'feedback-correct' : 'feedback-wrong';
+        $('feedback-overlay').classList.add('show-feedback');
+    }
+
+    function handleCorrect() {
+        sfx.correct();
+        gameState.correctAnswersTotal++;
+        gameState.combo++;
+        let pts = CONFIG.points.correct;
+        
+        // Speed bonus
+        if (gameState.timer >= CONFIG.timePerQuestion / 2) {
+            pts += CONFIG.points.speed;
+            showFeedback("CEPAT & TEPAT! +" + pts, true);
+        } else {
+            showFeedback("BENAR! +" + pts, true);
+        }
+
+        // Combo bonus
+        if (gameState.combo === 5) {
+            pts += CONFIG.points.combo;
+            setTimeout(() => showFeedback("COMBO BONUS! +20", true), 1000);
+            fireConfetti();
+        }
+
+        gameState.score += pts;
+        
+        if (gameState.isBossLevel) {
+            gameState.bossStreak++;
+            updateBossHealth();
+            let boss = $('boss-svg');
+            boss.classList.add('boss-hit');
+            sfx.bossHit();
+            setTimeout(() => boss.classList.remove('boss-hit'), 500);
+        } else {
+             if (Math.random() > 0.5) fireConfetti(); // random mini confetti
+        }
+
+        updateHUD();
+    }
+
+    function handleWrong(isTimeout = false) {
+        sfx.wrong();
+        gameState.combo = 0;
+        gameState.lives--;
+        
+        if(gameState.isBossLevel) {
+            gameState.bossStreak = 0;
+            updateBossHealth();
+        }
+
+        const msgs = ["Ayo Coba Lagi!", "Hampir Benar!", "Fokus!", "Jangan Menyerah!"];
+        let msg = isTimeout ? "WAKTU HABIS!" : msgs[Math.floor(Math.random()*msgs.length)];
+        showFeedback(msg, false);
+
+        updateHUD();
+
+        if (gameState.lives <= 0) {
+            setTimeout(gameOver, 1500);
+        }
+    }
+
+    function updateHUD() {
+        $('hud-score').textContent = gameState.score;
+        $('hud-level-val').textContent = gameState.currentLevel;
+        let heartsStr = "";
+        for(let i=0; i<3; i++) heartsStr += (i < gameState.lives) ? "❤️" : "🤍";
+        $('hud-lives').innerHTML = `<span class="hearts">${heartsStr}</span>`;
+    }
+
+    function updateBossHealth() {
+        let max = CONFIG.bossQuestions;
+        let current = max - gameState.bossStreak;
+        let pct = (current / max) * 100;
+        $('boss-health-fill').style.width = pct + '%';
+        $('boss-streak').textContent = gameState.bossStreak;
+    }
+
+    /* --- CONFETTI PARTICLE SYSTEM --- */
+    function fireConfetti() {
+        const canvas = $('confetti-canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        
+        let particles = [];
+        const colors = ['#fce18a', '#ff726d', '#b48def', '#f4306d', '#2ECC71', '#4A90E2'];
+        
+        for (let i = 0; i < 100; i++) {
+            particles.push({
+                x: canvas.width / 2,
+                y: canvas.height / 2 + 100,
+                r: Math.random() * 6 + 4,
+                dx: Math.random() * 10 - 5,
+                dy: Math.random() * -10 - 5,
+                color: colors[Math.floor(Math.random() * colors.length)],
+                tilt: Math.random() * 10,
+                tiltAngle: 0,
+                tiltAngleInc: (Math.random() * 0.07) + 0.05
+            });
+        }
+
+        let animId;
+        function render() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            let active = false;
+            
+            particles.forEach(p => {
+                p.tiltAngle += p.tiltAngleInc;
+                p.y += (Math.cos(p.tiltAngle) + 1 + p.r / 2) / 2;
+                p.x += Math.sin(p.tiltAngle) * 2;
+                p.dy += 0.2; // gravity
+                p.x += p.dx;
+                p.y += p.dy;
+
+                if (p.y <= canvas.height) active = true;
+
+                ctx.beginPath();
+                ctx.lineWidth = p.r;
+                ctx.strokeStyle = p.color;
+                ctx.moveTo(p.x + p.tilt + p.r, p.y);
+                ctx.lineTo(p.x + p.tilt, p.y + p.tilt + p.r);
+                ctx.stroke();
+            });
+
+            if (active) animId = requestAnimationFrame(render);
+            else ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+        render();
+    }
+
+    /* --- LEVEL PROGRESSION --- */
+    function endLevel() {
+        if (gameState.isBossLevel) {
+            victory();
+        } else {
+            sfx.levelUp();
+            let ptsEarned = gameState.score - (gameState.scoreAtLevelStart || 0);
+            gameState.scoreAtLevelStart = gameState.score;
+            $('lvl-score').textContent = "+" + ptsEarned;
+            
+            if (gameState.currentLevel === gameState.highestLevelUnlocked) {
+                gameState.highestLevelUnlocked++;
+            }
+            
+            // Badge logic
+            let showBadge = false;
+            if(gameState.currentLevel === 2) { $('new-badge-msg').innerHTML = "🎖️ Badge: Ahli Perkalian!"; showBadge = true;}
+            if(gameState.currentLevel === 4) { $('new-badge-msg').innerHTML = "🎖️ Badge: Raja Pembagian!"; showBadge = true;}
+            $('new-badge-msg').style.display = showBadge ? 'block' : 'none';
+
+            if(showBadge) fireConfetti();
+
+            switchScreen('screen-level-complete');
+        }
+    }
+
+    function backToMap() {
+        renderMap();
+        switchScreen('screen-map');
+    }
+
+    function gameOver() {
+        sfx.gameOver();
+        $('hud').style.display = 'none';
+        $('final-score-go').textContent = gameState.score;
+        switchScreen('screen-gameover');
+    }
+
+    function victory() {
+        sfx.levelUp();
+        setTimeout(fireConfetti, 500);
+        setTimeout(fireConfetti, 1500);
+        
+        $('hud').style.display = 'none';
+        $('vic-name').textContent = gameState.playerName;
+        $('vic-score').textContent = gameState.score;
+        
+        let acc = Math.round((gameState.correctAnswersTotal / gameState.totalAnswered) * 100) || 0;
+        $('vic-acc').textContent = acc + "%";
+
+        if (acc >= 90) {
+            $('btn-cert').style.display = 'inline-flex';
+            // Prepare Certificate Data
+            $('cert-name').textContent = gameState.playerName;
+            $('cert-score').textContent = gameState.score;
+            let d = new Date();
+            $('cert-date').textContent = `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`;
+        }
+
+        switchScreen('screen-victory');
+    }
+
+    function showCertificate() {
+        switchScreen('screen-certificate');
+    }
+
+    /* --- LEADERBOARD & STORAGE --- */
+    function saveScoreAndHome() {
+        let lb = JSON.parse(localStorage.getItem('fractionAdvLB')) || [];
+        lb.push({
+            name: gameState.playerName,
+            score: gameState.score,
+            level: gameState.highestLevelUnlocked > CONFIG.totalLevels ? "Tamat" : gameState.highestLevelUnlocked,
+            date: new Date().toLocaleDateString()
+        });
+        // Sort desc by score
+        lb.sort((a,b) => b.score - a.score);
+        lb = lb.slice(0, 10); // Keep top 10
+        localStorage.setItem('fractionAdvLB', JSON.stringify(lb));
+        
+        switchScreen('screen-home');
+    }
+
+    function showLeaderboard() {
+        let lb = JSON.parse(localStorage.getItem('fractionAdvLB')) || [];
+        let tbody = $('lb-body');
+        tbody.innerHTML = '';
+        if(lb.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4">Belum ada data skor.</td></tr>';
+        } else {
+            lb.forEach((entry, i) => {
+                let row = `<tr>
+                    <td>${i+1}</td>
+                    <td>${entry.name}</td>
+                    <td><b style="color:var(--accent)">${entry.score}</b></td>
+                    <td>${entry.level}</td>
+                </tr>`;
+                tbody.innerHTML += row;
+            });
+        }
+        switchScreen('screen-leaderboard');
+    }
+
+</script>
+</body>
+</html>
